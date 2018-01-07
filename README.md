@@ -1,7 +1,9 @@
 # Pong-Futebol
   * Jogo de futebol estilo ping pong usando módulo Gloss do *Haskell*.
+  <p align="center">
+  <img src="https://user-images.githubusercontent.com/25539501/34655018-e2e4bc18-f3ea-11e7-8287-4447e641ee85.png">
+  </p>
 
-![pf](https://user-images.githubusercontent.com/25539501/34655018-e2e4bc18-f3ea-11e7-8287-4447e641ee85.png)
 ## 1. Funcionamento
   * O jogo é disputado entre dois oponentes: um jogador humano e um jogador artificial.
 Os jogadores disputam pela realização de um gol.
