@@ -23,7 +23,7 @@ pHCollision (x, y) = (eCollision || wCollision) && dc
 d2p :: Position -> Position -> Float
 d2p (x,y) (x1,y1) = sqrt (((x-x1)**2) + ((y-y1)**2))
 
--- Checa se a bola toca no bastao leste, recebendo a posicao da bola, raio e posicao do bastao
+-- Checa se a bola toca no bastao oeste, recebendo a posicao da bola, raio e posicao do bastao
 bwCollision :: Position -> Position -> Bool
 bwCollision (x, y) (x1, y1) = wCollision
   where
