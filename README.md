@@ -32,3 +32,7 @@ do gol, subindo e descendo com velocidade padrão.
 ## 4. Tela final
   * O jogo acaba quando a bola passar completamente pelo gol. A tela final mostra um Text indicando o vencedor.
   * Após o fim do jogo, é possivel o reinicio da partida com a telca "r".
+
+  <p align="center">
+  <img src="https://user-images.githubusercontent.com/25539501/34655225-5401a116-f3ed-11e7-8d81-0ad2d5060bfd.png">
+  </p>
