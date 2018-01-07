@@ -51,7 +51,7 @@ render game = pictures[bola, paredesH, paredesV,
 
 -- Eventos de teclado
 fctKeys :: Event -> WorldPES -> WorldPES
--- Quando a tecla 'r' é pressionada a bola volta ao centro (0, 0) coma velocidade inicial (-300, 150)
+-- Quando a tecla 'r' é pressionada o jogo reinicia
 fctKeys (EventKey (Char 'r') _ _ _) game = eInicial
 -- Quando as teclas cima ou baixo são pressionadas o bastao se move a 1.3 pixels em y
 fctKeys (EventKey (SpecialKey KeyUp) _ _ _) (GameOver s) = GameOver s
