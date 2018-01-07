@@ -27,7 +27,7 @@ data WorldPES = GameOver String | Game{
 eInicial :: WorldPES
 eInicial = Game{
  coordBola = (0, 0), -- Coordenadas da bola
- velBola = (300, 0), -- Velocidade da bola nos eixos (x,y)
+ velBola = (-300, 110), -- Velocidade da bola nos eixos (x,y)
  bastao1 = (290, 0, 3), -- Jogador artificial
  bastao2 = (-290, 0, 0) -- Jogador
 }
@@ -35,19 +35,19 @@ eInicial = Game{
 -- Renderiza o game em uma Picture
 render :: WorldPES -> Picture
 render (GameOver s) = scale 0.5 0.5 . translate (-300) 0
-     . color (dark (dark (dark magenta))) . text $ s
+     . color green . text $ s
 render game = pictures[bola, paredesH, paredesV,
                        cBastao (bastao1 game),
                        cBastao (bastao2 game)]
  where
     -- Cria a bola com raio 15 e cor preta, posicionada em coordBola
-    bola = uncurry translate (coordBola game) (color (dark (dark magenta)) (circleSolid 15))
+    bola = uncurry translate (coordBola game) (color green (circleSolid 15))
 
     -- Criadores de paredes verticais e horizontais, respectivamente
     paredeH :: Float -> Picture
-    paredeH y = translate 0 y (color (dark (dark (dark magenta))) (rectangleSolid 600 5))
+    paredeH y = translate 0 y (color green (rectangleSolid 600 5))
     paredeV :: Float -> Float -> Picture
-    paredeV x y = translate x y (color (dark (dark (dark magenta))) (rectangleSolid 5 210))
+    paredeV x y = translate x y (color green (rectangleSolid 5 210))
 
     -- Criacao de Pictures das paredes verticais e horizontais
     paredesH = pictures [paredeH 297.5, paredeH (-297.5)]
@@ -57,8 +57,8 @@ render game = pictures[bola, paredesH, paredesV,
     --  Criador de bastoes
     cBastao :: (Float, Float, Float) -> Picture
     cBastao (x, y, _) = pictures
-      [ translate x y (color (dark (dark magenta)) (rectangleSolid 10 70)),
-        translate x y (color (dark (dark magenta)) (rectangleSolid 10 70))]
+      [ translate x y (color green (rectangleSolid 10 70)),
+        translate x y (color green (rectangleSolid 10 70))]
 
 -- Movimenta o bastao, sendo chamada enquanto as teclas chaves estao pressionadas
 attBastao :: Float -> WorldPES -> WorldPES
@@ -102,52 +102,50 @@ attBolaeIA time game = game {
     (cx,cy,_) = (bx,by+d0,d2)
 
 -- Checa se a bola toca nas paredes verticalmente
-pVCollision :: Position -> Radius -> Bool
-pVCollision (_, y) raio = nCollision || sCollision
+pVCollision :: Position -> Bool
+pVCollision (_, y) = nCollision || sCollision
   where
-    sCollision = y-raio<=(-297.5)
-    nCollision = y+raio>=297.5
+    sCollision = y-15<=(-297.5)
+    nCollision = y+15>=297.5
 
 -- Checa se a bola toca nas paredes horizontalmente
-pHCollision :: Position -> Radius -> Bool
-pHCollision (x, y) raio = (eCollision || wCollision) && dc
+pHCollision :: Position -> Bool
+pHCollision (x, y) = (eCollision || wCollision) && dc
   where
-    dc = ((y-raio)<=(-90)) || ((y+raio)>=90)
-    eCollision = (x-raio)<=(-297.5)
-    wCollision = (x+raio)>=297.5
+    dc = ((y-15)<=(-90)) || ((y+15)>=90)
+    eCollision = (x-15)<=(-297.5)
+    wCollision = (x+15)>=297.5
 
 -- Calcula a distancia entre dois pontos e a retorna como Float
 d2p :: Position -> Position -> Float
 d2p (x,y) (x1,y1) = sqrt (((x-x1)**2) + ((y-y1)**2))
 
 -- Checa se a bola toca no bastao leste, recebendo a posicao da bola, raio e posicao do bastao
-bwCollision :: Position -> Radius -> Position -> Bool
-bwCollision (x, y) raio (x1, y1) = wCollision
+bwCollision :: Position -> Position -> Bool
+bwCollision (x, y) (x1, y1) = wCollision
   where
-    wCollision = (y-raio<=y1+35) && (y+raio>=y1-35) && ((x-raio== -285) || (x+raio== -295))
+    wCollision = (y-15<=y1+30) && (y+15>=y1-30) && (x-15<= -285) && (x-15> -295)
 
 -- Checa se a bola toca no bastao leste, recebendo a posicao da bola, raio e posicao do bastao
-beCollision :: Position -> Radius -> Position -> Bool
-beCollision (x, y) raio (x1, y1) = eCollision
+beCollision :: Position -> Position -> Bool
+beCollision (x, y) (x1, y1) = eCollision
   where
-    eCollision = (y-raio<=y1+35) && (y+raio>=y1-35) && ((x-raio==285) || (x+raio==295))
+    eCollision = (y-15<=y1+30) && (y+15>=y1-30) && (x+15>=285) && (x+15<295)
 
 -- Checa se a bola toca nas quinas dos bastoes ou das paredes
-quinaCollision :: Position -> Radius -> (Position,Position) -> Bool
-quinaCollision (x, y) raio ((bx1,by1),(bx2,by2)) = qp1Collision || qp2Collision || qb1Collision || qb2Collision
+quinaCollision :: Position -> (Position,Position) -> Bool
+quinaCollision (x, y) ((bx1,by1),(bx2,by2)) = qp1Collision || qp2Collision || qb1Collision || qb2Collision
   where
-    qp1Collision = (((d2p (x,y) (297.5,90))==15) && (y>90)) || (((d2p (x,y) (297.5,-90))==15) && (y<(-90)))
-    qp2Collision = (((d2p (x,y) (-297.5,90))==15) && (y>90)) || (((d2p (x,y) (-297.5,-90))==15) && (y<(-90)))
-    qb1Collision = (((d2p (x,y) (bx1,by1+35))==15) && (y+raio>by1+35)) || (((d2p (x,y) (bx1,by1-35))==15) && (y-raio<by1-35))
-    qb2Collision = (((d2p (x,y) (bx2,by2+35))==15) && (y+raio>by2+35)) || (((d2p (x,y) (bx2,by2-35))==15) && (y-raio<by2-35))
+    qp1Collision = (((d2p (x,y) (297.5,90))<=15) && (y>95)) || (((d2p (x,y) (297.5,-90))<=15) && (y<(-95)))
+    qp2Collision = (((d2p (x,y) (-297.5,90))<=15) && (y>95)) || (((d2p (x,y) (-297.5,-90))<=15) && (y<(-95)))
+    qb1Collision = (y>=by1+35 && y-15<=by1+35 || (y>=by1-35 && y+15<=by1-35)) && x+15>= 285
+    qb2Collision = (y>=by2+35 && y-15<=by2+35 || (y>=by2-35 && y+15<=by2-35)) && x-15<= -285
 
 -- Checa as colisoes da bola e retorna o mundo com as atualizacoes de velocidade
 vrfCollision :: WorldPES -> WorldPES
 vrfCollision (GameOver s) = GameOver s
 vrfCollision game = q
   where
-    -- Raio da bola
-    raio = 15
     -- As velocidades atuais da bola nos eixos (x, y)
     (vx, vy) = velBola game
     -- Coordenadas dos bastoes
@@ -156,54 +154,35 @@ vrfCollision game = q
     (x,y) = coordBola game
 
     q = if (x>=315) then GameOver "You won!"
-      else if (x<= -315) then GameOver "Se fodeu!"
-      else  game {velBola = (vx1, vy1)}
+        else if (x<= -315) then GameOver "Se fodeu!"
+        else  game {velBola = (vx1, vy1)}
 
     -- Var auxiliar para atualizacao de velocidade com colisao vertical
-    d = if (vy>350)
-        then
-          0.75
-        else
-          1.05
+    d = if (vy>350) then 0.75
+        else 1.05
 
-    -- Verifica colisao verticalmente e retorna a nova velocidade
-    vy1 = if (pVCollision (coordBola game) raio || quinaCollision (coordBola game) raio ((x1,y1),(x2,y2)))
-          then
-            -- Atualiza sentido da velocidade no eixo y
-            -vy*d
+    -- Verifica colisao verticalmente e altera a velocidade e o sentido, caso haja
+    vy1 = if (pVCollision (coordBola game) || quinaCollision (coordBola game) ((x1,y1),(x2,y2)))
+          then -vy*d
           -- Atualiza a velocidade no eixo x, somando a velocidade do bastao leste a bola
-          else if (beCollision (coordBola game) raio (x1,y1))
-          then
-            --(*10 pois a velocidade do bastao eh significamente menor por conta da implementacao do movimento do teclado)
-            vy+(d1*10)
+          else if (beCollision (coordBola game) (x1,y1)) then vy+(d1*10)
           -- Atualiza a velocidade no eixo x, somando a velocidade do bastao oeste a bola 
-          else if (bwCollision (coordBola game) raio (x2,y2))
-          then
-            --(*10 pois a velocidade do bastao eh significamente menor por conta da implementacao do movimento do teclado)
-            vy+(d2*10)
-          else
-            -- Retorna a mesma velocidade
-            vy
+          else if (bwCollision (coordBola game) (x2,y2)) then vy+(d2*10)
+          else vy
 
-    -- Verifica colisao horizontalmente e retorna a nova velocidade
-    vx1 = if ((pHCollision (coordBola game) raio))
-          then
-            -- Atualiza sentido da velocidade no eixo x
-            -vx
-          else if ((beCollision (coordBola game) raio (x1,y1))) || ((bwCollision (coordBola game) raio (x2,y2)))
-          then
-            -- Atualiza sentido da velocidade no eixo x
-            -vx
-          else
-            -- Retorna a mesma velocidade
-            vx
+    -- Verifica colisao horizontalmente e altera o sentido, caso haja
+    vx1 = if (pHCollision (coordBola game)) then -vx
+          else if ((beCollision (coordBola game) (x1,y1))) || ((bwCollision (coordBola game) (x2,y2)))
+          then -vx
+          else vx
 
 -- Eventos de teclado
 fctKeys :: Event -> WorldPES -> WorldPES
-
--- Quando a tecla 'r' é pressionada a bola volta ao centro (0, 0) coma velocidade inicial (-300, 110)
+-- Quando a tecla 'r' é pressionada a bola volta ao centro (0, 0) coma velocidade inicial (-300, 150)
 fctKeys (EventKey (Char 'r') _ _ _) game = eInicial
 -- Quando as teclas cima ou baixo são pressionadas o bastao se move a 2.5 pixels em y
+fctKeys (EventKey (SpecialKey KeyUp) _ _ _) (GameOver s) = GameOver s
+fctKeys (EventKey (SpecialKey KeyDown) _ _ _) (GameOver s) = GameOver s
 fctKeys (EventKey (SpecialKey KeyUp) _ _ _) game = attBastao 2.5 game
 fctKeys (EventKey (SpecialKey KeyDown) _ _ _) game = attBastao (-2.5) game
 fctKeys _ game = game
@@ -214,7 +193,7 @@ update s = attBolaeIA s . vrfCollision
 
 -- Frames per second
 fps :: Int
-fps = 120
+fps = 60
 
 main :: IO ()
 main = play window background fps eInicial render fctKeys update
