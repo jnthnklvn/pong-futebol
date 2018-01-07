@@ -11,7 +11,8 @@ enquanto se defende do jogador artificial.
 ## 2. Movimentação
 * Movimento da bola
   * Velocidade horizontal: constante e muda o sentido sempre que colide horizontalmente.
-  * Velocidade vertical: muda sempre que colide com os bastões. A velocidade dos bastões é somada a da bola.
+  * Velocidade vertical: muda sempre que colide com os bastões. A velocidade dos bastões é somada a da bola ou
+  quando colide verticalmente.
 
 * Movimento dos bastões
   * Os bastões se movimentam no sentido vertical. O bastão do jogador se move quando as teclas Up e Down são
@@ -27,3 +28,4 @@ do gol, subindo e descendo com velocidade padrão.
 
 ## 4. Tela final
   * O jogo acaba quando a bola passar completamente pelo gol. A tela final mostra um Text indicando o vencedor.
+  * Após o fim do jogo, é possivel o reinicio da partida com a telca "r".
