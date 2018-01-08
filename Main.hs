@@ -28,7 +28,7 @@ eInicial :: WorldPES
 eInicial = Game{
  coordBola = (0, 0), -- Coordenadas da bola
  velBola = (-300, 110), -- Velocidade da bola nos eixos (x,y)
- bastao1 = (290, 0, 3), -- Jogador artificial
+ bastao1 = (290, 0, 1.5), -- Jogador artificial
  bastao2 = (-290, 0, 0) -- Jogador
 }
 
@@ -90,14 +90,14 @@ attBolaeIA time game = game {
     y1 = y + vy * time
 
     -- Limita e automatiza a movimentacao do jogador artificial
-    d1 = if (ay<(-80)) then 3
-         else if (ay>80) then -3
+    d1 = if (ay<(-80)) then 1.5
+         else if (ay>80) then -1.5
          else d
     (dx,dy,_) = (ax,ay+d,d1)
 
     -- Limita o movimento do bastao do jogador
-    d2 = if (by-35<=(-300)) then 5
-        else if (by+35>=300) then -5
+    d2 = if (by-35<=(-300)) then 2
+        else if (by+35>=300) then -2
         else d0
     (cx,cy,_) = (bx,by+d0,d2)
 
@@ -157,13 +157,9 @@ vrfCollision game = q
         else if (x<= -315) then GameOver "Se fodeu!"
         else  game {velBola = (vx1, vy1)}
 
-    -- Var auxiliar para atualizacao de velocidade com colisao vertical
-    d = if (vy>350) then 0.75
-        else 1.05
-
     -- Verifica colisao verticalmente e altera a velocidade e o sentido, caso haja
     vy1 = if (pVCollision (coordBola game) || quinaCollision (coordBola game) ((x1,y1),(x2,y2)))
-          then -vy*d
+          then -vy*1.05
           -- Atualiza a velocidade no eixo x, somando a velocidade do bastao leste a bola
           else if (beCollision (coordBola game) (x1,y1)) then vy+(d1*10)
           -- Atualiza a velocidade no eixo x, somando a velocidade do bastao oeste a bola 
@@ -180,11 +176,11 @@ vrfCollision game = q
 fctKeys :: Event -> WorldPES -> WorldPES
 -- Quando a tecla 'r' é pressionada a bola volta ao centro (0, 0) coma velocidade inicial (-300, 150)
 fctKeys (EventKey (Char 'r') _ _ _) game = eInicial
--- Quando as teclas cima ou baixo são pressionadas o bastao se move a 2.5 pixels em y
+-- Quando as teclas cima ou baixo são pressionadas o bastao se move a 1.3 pixels em y
 fctKeys (EventKey (SpecialKey KeyUp) _ _ _) (GameOver s) = GameOver s
 fctKeys (EventKey (SpecialKey KeyDown) _ _ _) (GameOver s) = GameOver s
-fctKeys (EventKey (SpecialKey KeyUp) _ _ _) game = attBastao 2.5 game
-fctKeys (EventKey (SpecialKey KeyDown) _ _ _) game = attBastao (-2.5) game
+fctKeys (EventKey (SpecialKey KeyUp) _ _ _) game = attBastao 1.3 game
+fctKeys (EventKey (SpecialKey KeyDown) _ _ _) game = attBastao (-1.3) game
 fctKeys _ game = game
 
 -- Atualiza o mundo do game com a frequencia s (segundos)
@@ -193,7 +189,7 @@ update s = attBolaeIA s . vrfCollision
 
 -- Frames per second
 fps :: Int
-fps = 60
+fps = 160
 
 main :: IO ()
 main = play window background fps eInicial render fctKeys update
