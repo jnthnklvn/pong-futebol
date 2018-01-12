@@ -4,8 +4,8 @@ import Fisica
 
 -- Data do mundo do game
 data WorldPES = GameOver String | Game{
- coordBola :: (Float, Float),  -- Coordenadas da bola (x, y)
- velBola :: (Float, Float),  -- Velocidade da bola nos eixos (x, y)
+ coordBola :: (Float,Float),  -- Coordenadas da bola (x, y)
+ velBola :: (Float,Float),  -- Velocidade da bola nos eixos (x, y)
  bastao1 :: (Float, Float, Float),  -- Bastao 1 coordenadas e velocidade vertical (x, y, d)
  bastao2 :: (Float, Float, Float)  -- Bastao 2 coordenadas e velocidade vertical (x, y, d)
 }deriving Show
@@ -51,33 +51,77 @@ attBolaeIA time game = game {
         else d0
     (cx,cy,_) = (bx,by+d0,d2)
 
+-- Atualiza sentido, coordenadas e velocidade da bola
+bHCollision :: WorldPES -> Float -> WorldPES
+bHCollision game x' = game{velBola = (-x1,y1+(d*10)), coordBola=(x',y)}
+  where
+    (x,y) = coordBola game
+    (x1,y1) = velBola game
+    (_,_,d) = if (x<0) then bastao2 game else bastao1 game
+
+-- Atualiza sentido, coordenadas e velocidade da bola
+bVCollision :: WorldPES -> Float -> WorldPES
+bVCollision game y' = game{velBola = (x1,-(y1+(d*10))), coordBola=(x,y')}
+  where
+    (x,y) = coordBola game
+    (x1,y1) = velBola game
+    (_,_,d) = if (x<0) then bastao2 game else bastao1 game
+
+-- Identifica onde a bola colide com o bastao
+bACollision :: WorldPES -> Position -> WorldPES
+bACollision game (x,y)
+  -- Verifica se a bola colide em x e y
+  | min yt yb == min xl xr = dCollision
+
+  -- Verifica se a bola colide na parte de cima do bastao
+  | yt < yb = if xr < xl then tR else tL
+
+  -- A bola colide na parte de baixo do bastao
+  | otherwise = if xr < xl then bR else bL
+  where
+    (x1,y1) = coordBola game
+    yt = (y+35)-(y1-raio)
+    yb = (y1+raio)-(y-35)
+    xl = (x1+raio)-(x-5)
+    xr = (x+5)-(x1-raio)
+    tL = if yt < xl then bVCollision game (y+35+raio)
+                  else bHCollision game (x-5-raio)
+
+    tR = if yt < xr then bVCollision game (y+35+raio)
+                  else bHCollision game (x+5+raio)
+
+    bL = if yb < xl then bVCollision game (y-35-raio)
+                  else bHCollision game (x-5-raio)
+
+    bR = if yb < xr then bVCollision game (y-35-raio)
+                  else bHCollision game (x+5+raio)
+
+    dCollision = let yPos = if yt < yb then y+35+raio else y-35-raio
+                      xPos = if xr < xl then x+5+raio else x-5-raio
+                  in bVCollision (bHCollision game xPos) yPos
+
 -- Checa as colisoes da bola e retorna o mundo com as atualizacoes de velocidade
 vrfCollision :: WorldPES -> WorldPES
 vrfCollision (GameOver s) = GameOver s
 vrfCollision game = q
   where
-    -- As velocidades atuais da bola nos eixos (x, y)
-    (vx, vy) = velBola game
-    -- Coordenadas dos bastoes e da bola
+    -- Coordenadas dos bastoes e velocidades da bola
     (x1,y1,d1) = bastao1 game
     (x2,y2,d2) = bastao2 game
     (x,y) = coordBola game
+    (vx, vy) = velBola game
+
     -- Retorna uma tela de GameOver se a bola estiver com o centro a 15 pixels fora do campo
-    q = if (x>=315) then GameOver "You won!"
-        else if (x<= -315) then GameOver "Se fodeu!"
-        else  game {velBola = (vx1, vy1)}
+    q = if (x>=286) then GameOver "You won!" --Jogador ganhou
+        else if (x<= -286) then GameOver "Se fodeu!" --Jogador artificial ganhou
+        else if (bCollision (x1,y1) (x,y)) then (bACollision game (x1,y1)) --Colisoes jogador artificial
+        else if (bCollision (x2,y2) (x,y)) then (bACollision game (x2,y2)) --Colisoes jogador
+        else  game {velBola = (vx1, vy1)} --Colisoes paredes
 
     -- Verifica colisao verticalmente e altera a velocidade e o sentido, caso haja
-    vy1 = if (pVCollision (coordBola game) || quinaCollision (coordBola game) ((x1,y1),(x2,y2)))
-          then -vy*1.05 -- Atualiza o sentido da velocidade e a aumenta em 5%
-          -- Atualiza a velocidade no eixo x, somando a velocidade do bastao leste a bola
-          else if (beCollision (coordBola game) (x1,y1)) then vy+(d1*10)
-          -- Atualiza a velocidade no eixo x, somando a velocidade do bastao oeste a bola 
-          else if (bwCollision (coordBola game) (x2,y2)) then vy+(d2*10)
+    vy1 = if pVCollision (coordBola game) then -vy*1.05 -- Muda o sentido da velocidade e a aumenta em 5%
           else vy -- Retorna a mesma velocidade
 
     -- Verifica colisao horizontalmente e altera o sentido, caso haja
-    vx1 = if (pHCollision (coordBola game)) then -vx -- Atualiza o sentido da velocidade
-          else if ((beCollision (coordBola game) (x1,y1))) || ((bwCollision (coordBola game) (x2,y2)))
-          then -vx -- Atualiza o sentido da velocidade
+    vx1 = if pHCollision (coordBola game) then -vx -- Muda o sentido da velocidade
           else vx -- Retorna a mesma velocidade

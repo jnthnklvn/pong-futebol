@@ -29,7 +29,7 @@ render game = pictures[bola, paredesH, paredesV,
                        cBastao (bastao1 game),
                        cBastao (bastao2 game)]
  where
-    -- Cria a bola com raio 15 e cor preta, posicionada em coordBola
+    -- Cria a bola com raio 15 e cor verde, posicionada em coordBola
     bola = uncurry translate (coordBola game) (color green (circleSolid 15))
 
     -- Criadores de paredes verticais e horizontais, respectivamente
