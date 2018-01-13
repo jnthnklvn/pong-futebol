@@ -113,7 +113,7 @@ vrfCollision game = q
 
     -- Retorna uma tela de GameOver se a bola estiver com o centro a 15 pixels fora do campo
     q = if (x>=286) then GameOver "You won!" --Jogador ganhou
-        else if (x<= -286) then GameOver "Se fodeu!" --Jogador artificial ganhou
+        else if (x<= -286) then GameOver "You lose!" --Jogador artificial ganhou
         else if (bCollision (x1,y1) (x,y)) then (bACollision game (x1,y1)) --Colisoes jogador artificial
         else if (bCollision (x2,y2) (x,y)) then (bACollision game (x2,y2)) --Colisoes jogador
         else  game {velBola = (vx1, vy1)} --Colisoes paredes
